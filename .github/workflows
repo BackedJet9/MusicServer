@@ -1,0 +1,28 @@
+name: Continuous Deployment to Debian Server
+
+# Trigger this workflow every time someone pushes to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    # This instructs GitHub to run this job directly on your Debian PC 
+    # instead of on GitHub's own cloud servers.
+    runs-on: self-hosted
+
+    steps:
+      # Step 1: Tell the server to fetch the newly pushed code from the repo
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Make sure dependencies are fresh and compiled for SQLite
+      - name: Install Production Dependencies
+        run: |
+          npm install --production
+
+      # Step 3: Tell PM2 to gracefully restart the app so changes take effect
+      - name: Restart Server Process
+        run: |
+          pm2 restart music-app || pm2 start server.js --name "music-app"
