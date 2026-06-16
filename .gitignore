@@ -1,6 +1,7 @@
 # SQLite database
 library.db
 library.db-journal
+.env
 
 # 1. Ignore all contents of the music library
 musicLibrary/**/*

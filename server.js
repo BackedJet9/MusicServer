@@ -30,7 +30,9 @@ const os = require('os');
 const app = express();
 app.use(cors());
 
-const server = app.listen(3000, () => console.log('Server running on port 3000'));
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 server.setTimeout(120000); // Increase timeout to 2 minutes for large uploads
 
 // 1. Increase payload limits for the initial request handling
