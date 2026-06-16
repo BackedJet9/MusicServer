@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player - Navigation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/public/main.css">
+
+</head>
+
+<body>
+    <nav class="left-nav">
+        <div class="nav-items">
+            <a href="#" class="nav-item active" data-page="library">
+                <span class="nav-icon"></span>
+                <span>Library</span>
+            </a>
+            <a href="#" class="nav-item" data-page="artists">
+                <span class="nav-icon"></span>
+                <span>Artists</span>
+            </a>
+            <a href="#" class="nav-item" data-page="statsPage">
+                <span class="nav-icon"></span>
+                <span>Stats</span>
+            </a>
+        </div>
+    </nav>
+
+    <nav class="btm-player">
+        <div class="player-controls">
+            <button class="view-queue-btn" onclick="renderAndOpenQueuePanel()">
+                <span>──<br>
+                    ──<br>
+                    ──<br>
+                </span>
+            </button>
+
+            <button class="stop-btn" onclick="togglePlayback(this)" id="playPauseBtn">
+                <span>▶</span>
+            </button>
+
+            <button class="next-btn" onclick="playNextTrack()">
+                <span>▶▶</span>
+            </button>
+
+            <div id="now-playing-info" class="now-playing">
+                <div id="track-title" class="title-row">
+                    <div class="marquee-track">
+                        <span>No Song Playing</span>
+                        <span>No Song Playing</span>
+                    </div>
+                </div>
+                <div id="artist-name" class="track-subtext artist-row">
+                    <div class="marquee-track">
+                        <span>Unknown Artist</span>
+                        <span>Unknown Artist</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="volume-control">
+                <input type="range" class="volume-slider" min="0" max="100" value="80">
+                <span class="volume-label">80%</span>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="top-nav" id="topNav">
+        <form class="search-form" id="searchForm">
+            <div class="search-bar" id="searchBar">
+                <input type="search" id="searchInput" placeholder="Search your music..."
+                    oninput="handleLibrarySearchInput()">
+            </div>
+
+            <!-- Dropdown preview panel -->
+            <div class="search-preview" id="searchPreview">
+                <span id="searchQuery">Loading search results...</span>
+            </div>
+        </form>
+        <button class="add-btn" onclick="uploadMusicFiles()">🗀</button>
+        <button id="refresh" class="sync-button"
+            onclick="alert('reloads stop playing music and clear queue'); location.reload();">
+            <span>⟳</span>
+        </button>
+    </nav>
+
+    <!-- Background dimming layer -->
+    <div class="search-overlay" id="searchOverlay"></div>
+
+    <button class="song-focus-btn" id="songFocusBtn" onclick="toggleSongFocusPage()">
+        ^
+    </button>
+
+    <div class="song-focus-page" id="songFocusPage">
+        <div class="control-visibility-picker">
+            <button class="control-visibility-btn" type="button" aria-label="Choose visible controls"
+                aria-expanded="false" onclick="toggleControlVisibilityMenu()">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
+            </button>
+            <div class="control-visibility-menu" id="controlVisibilityMenu">
+                <span class="control-visibility-title">Visible controls</span>
+                <label><input type="checkbox" data-control-target="visSlider" checked>Visualizer</label>
+                <label><input type="checkbox" data-control-target="sensSlider" checked>Sensitivity</label>
+                <label><input type="checkbox" data-control-target="focusVolumeControl" checked>Volume</label>
+                <label><input type="checkbox" data-control-target="visualizerReactionControl" checked>Reaction</label>
+                <label><input type="checkbox" data-control-target="visualizerScaleControl" checked>Scale</label>
+            </div>
+        </div>
+
+        <div class="visualizer-slider" id="visSlider">
+            <span class="visualizer-label">Visualizer:</span>
+            <span id="visNameDisplay" class="visualizer-name">Mode:
+                Arcs</span>
+            <input type="range" min="1" max="9" step="1" oninput="setVisualizerMode(this.value)" value="1">
+        </div>
+
+        <div class="sens-slider" id="sensSlider">
+            <span class="sens-label">Sensitivity:</span>
+            <input type="range" min="0.05" max="0.5" step="0.01" value="0.2"
+                oninput="setVisualizerSensitivity(this.value)">
+        </div>
+
+        <div class="volume-control" id="focusVolumeControl">
+            <span class="volume-control-label">Volume:</span>
+            <input type="range" class="volume-slider" min="0" max="100" value="80">
+            <span class="volume-label">80%</span>
+        </div>
+
+        <div class="visualizer-size-control" id="visualizerReactionControl">
+            <span class="visualizer-size-label">Reaction:</span>
+            <input type="range" min="0.5" max="3" step="0.1" value="1"
+                oninput="setVisualizerGain(this.value)">
+            <span class="visualizer-size-value">x1.0</span>
+        </div>
+
+        <div class="visualizer-scale-control" id="visualizerScaleControl">
+            <span class="visualizer-scale-label">Scale:</span>
+            <input type="range" min="0.5" max="2" step="0.1" value="1"
+                oninput="setVisualizerScale(this.value)">
+            <span class="visualizer-scale-value">x1.0</span>
+        </div>
+
+        <canvas id="visualizer"></canvas>
+
+        <audio id="main-audio-player" crossorigin="anonymous"></audio>
+        <div class="ui-layer">
+            <div class="album-art-wrapper">
+                <div class="album-art"></div>
+                <svg class="album-art-text" viewBox="0 0 220 220" preserveAspectRatio="xMidYMid meet"
+                    aria-hidden="true">
+                    <defs>
+                        <!-- SVG text paths-->
+                        <!-- M(x,y) = Move to (x,y). A(85,85) = Draw an elliptical arc, with radii 85,85 (horizontal/vertical)-->
+                        <!-- 0 = Rotate 0 degrees, 0,1 = Large arc flag,Sweep flag (boolean). 195,110 = End point x,y -->
+                        <path id="albumTextPathTop" d="M 31,110 A 77,77 0 0,1 187,110" />
+                        <path id="albumTextPathBottom" d="M 200,110 A 90,90 0 0,1 20,110" />
+                    </defs>
+                    <text class="album-text-line album-text-line--top">
+                        <textPath href="#albumTextPathTop" startOffset="50%" text-anchor="middle" id="albumTitleText">
+                        </textPath>
+                    </text>
+                    <text class="album-text-line album-text-line--bottom">
+                        <textPath href="#albumTextPathBottom" startOffset="50%" text-anchor="middle"
+                            id="albumArtistText"></textPath>
+                    </text>
+                </svg>
+            </div>
+            <div id="now-playing-info-focus" class="now-playing hidden-now-playing">
+                <div id="track-title-focus" class="title-row">
+                    <div class="marquee-track">
+                        <span>No Song Playing</span>
+                        <span>No Song Playing</span>
+                    </div>
+                </div>
+                <div id="artist-name-focus" class="track-subtext artist-row">
+                    <div class="marquee-track">
+                        <span>Unknown Artist</span>
+                        <span>Unknown Artist</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="content">
+        <div id="library" class="page-content active">
+            <header class="content-header">
+                <span class="content-kicker">Your collection</span>
+                <h2>Albums, ready when you are.</h2>
+                <p>Choose an album and let the rest of the tracklist follow.</p>
+            </header>
+            <div id="library-grid" class="grid-container">
+                <p>Loading albums...</p>
+            </div>
+        </div>
+
+        <div id="artists" class="page-content">
+            <header class="content-header">
+                <span class="content-kicker">Artist index</span>
+                <h2>Follow the sound to its source.</h2>
+                <p>Explore artists in your collection.</p>
+            </header>
+            <ul id="artist-list" class="artist-list">Loading artists...</ul>
+        </div>
+
+        <div id="statsPage" class="page-content">
+            <header class="content-header">
+                <span class="content-kicker">Listening report</span>
+                <h2>Your rotation, in numbers.</h2>
+                <p>See which songs and artists keep finding their way back.</p>
+            </header>
+            <div class="stats-banner">
+                <div class="stat-item">
+                    <h3 id="stat-song-count">0</h3>
+                    <p>Songs</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="stat-artist-count">0</h3>
+                    <p>Artists</p>
+                </div>
+            </div>
+
+            <div class="explore-charts">
+                <div class="chart-section">
+                    <h3>Most Replayed Tracks</h3>
+                    <ul id="top-songs-list" class="chart-list"></ul>
+                </div>
+                <div class="chart-section">
+                    <h3>Artists in Heavy Rotation</h3>
+                    <ul id="top-artists-list" class="chart-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="albumPage" class="page-content">
+            <header class="content-header">
+                <span class="content-kicker">Now browsing</span>
+                <h2>Select an album or artist.</h2>
+                <p>Track details and play controls will appear here.</p>
+            </header>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@foobar404/wave@2.0.5/dist/bundle.min.js"></script>
+
+    <script src="main.js" async></script>
+</body>
+
+</html>
